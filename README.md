@@ -13,5 +13,5 @@
   
 # 구동 과정
 
-![인트로](./Toy_Grapper/images/1_인트로화면.png)
+![인트로](./Random_Toy_Grapper/images/1_인트로화면.png)
 
