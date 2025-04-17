@@ -935,10 +935,10 @@ void Main_Screen(int x, int y) // 메인 메뉴
 
 	textcolor(text_color);
 	gotoxy(Creater_x, Creater_y);	  printf("     < 제작자 >");
-	gotoxy(Creater_x, Creater_y + 1); printf("       백성진");
-	gotoxy(Creater_x, Creater_y + 2); printf("");
-	gotoxy(Creater_x, Creater_y + 3); printf("       구윤서");
-	gotoxy(Creater_x, Creater_y + 4); printf("");
+	gotoxy(Creater_x, Creater_y + 1); printf("");
+	gotoxy(Creater_x, Creater_y + 2); printf("       백성진");
+	gotoxy(Creater_x, Creater_y + 3); printf("");
+	gotoxy(Creater_x, Creater_y + 4); printf("       구윤서");
 }
 
 void Cash_System_Print(int x, int y) // 금액 투입 시스템 화면
@@ -1129,7 +1129,7 @@ void Cash_System_Calculate(int cash_select, int x, int y) // 금액 투입 시스템 기
 	textcolor(text_color);
 }
 
-void Randomize_Doll_Stock(int n) // 인형별 재고 수량 랜덤화
+void Randomize_Doll_Stock(int n) // 선택뽑기의 인형 재고 수량 랜덤화
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -1167,6 +1167,7 @@ void Random_Game_Start(int game_menu_select,int x, int y) // 랜덤 게임 진행 함수
 			delay(speed);
 			total_cash = total_cash - random_cost;
 			gotoxy(x, y + 2);
+
 			if (dice < 1) // 1%
 			{
 				textcolor(BLUEGREEN);
@@ -1214,7 +1215,7 @@ void Random_Game_Start(int game_menu_select,int x, int y) // 랜덤 게임 진행 함수
 			}
 			else
 			{
-				printf("오류 : dice 랜덤값");
+				printf("dice 랜덤값 에러");
 				delay(speed);
 			}
 			Delete_Image(start_x, start_y);
