@@ -1,10 +1,10 @@
-////////////////////////////////////////////////////// 정의 ////////////////////////////////////////////////////
 #define _CRT_SECURE_NO_WARNINGS
-#define randomize() srand((unsigned)time(NULL)) // 랜덤 함수 정의
-#define random(n) (rand() % (n)) // 랜덤 함수 사용 정의
-#define cls system("cls") // 지우기
-#define delay(n) Sleep(n) // 대기
+#define randomize() srand((unsigned)time(NULL))
+#define random(n) (rand() % (n))
+#define cls system("cls")
+#define delay(n) Sleep(n)
 #define random_cost 1000 // 랜덤 뽑기 비용
+#define min_cost 1000 // 최소 금액 투입 비용
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +12,8 @@
 #include <windows.h>
 #include <string.h>
 #include <time.h>
-////////////////////////////////////////////////////// 유용한 기능 함수 /////////////////////////////////////////
+
+												// 윈도우 제공 함수 //
 void gotoxy(int x, int y)
 {
 	COORD Cur;
@@ -20,14 +21,14 @@ void gotoxy(int x, int y)
 	Cur.Y = y;
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), Cur);
 }
-int wherex() // 현재 x 좌표 위치 조사
+int wherex()
 {
 	CONSOLE_SCREEN_BUFFER_INFO BufInfo;
 
 	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &BufInfo);
 	return BufInfo.dwCursorPosition.X;
 }
-int wherey() // 현재 y 좌표 위치 조사
+int wherey()
 {
 	CONSOLE_SCREEN_BUFFER_INFO BufInfo;
 
@@ -39,7 +40,7 @@ typedef enum {
 	SOLIDCURSOR,
 	NORMALCURSOR
 } CURSOR_TYPE;
-typedef enum { // 색상 코드
+typedef enum {
 	BLACK = 0, BLUE = 1, GREEN = 2, SKYBLUE = 3, RED = 4, PURPLE = 5, ORANGE = 6,
 	WHITE = 7, GREY = 8, LIGHTBLUE = 9, LIGHTGREEN = 10, BLUEGREEN = 11, LIGHTRED = 12, LIGHTPURPLE = 13,
 	YELLOW = 14, LIGHTWHITE = 15
@@ -72,34 +73,33 @@ void textcolor(COLOR_TYPE text) // 글자 색상만 지정
 {
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), text);
 }
-void setColor(int color) {
+void setColor(int color) {	// 윤서님 작성 코드에 필요
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
-////////////////////////////////////////////////// 전역 변수 // 구조체 // 이미지 배열 ////////////////////////////////
 
-int start=0; // 플래그 변수
-int total_cash = 0; // 총 금액 변수
-int speed = 800; // delay 속도 변수 delay(speed) = 0.8초 
-int text_speed = 10; // 글자 재생 속도
-int text_color = LIGHTWHITE; // 기본 폰트 색상
-char doll_shape[3] = "■"; // 무늬
-
-typedef struct doll // 인형 목록 구조체
+												// 주요 변수 , 구조체, 배열 //
+int start=0;		 // 플래그 변수
+int total_cash = 0;  // 총 금액
+int speed = 800;	 // delay 속도
+int text_speed = 10; // 텍스트 속도
+int text_color = LIGHTWHITE; // 기본 색
+int frame_color = LIGHTWHITE;// 화면 테두리 색
+char doll_shape[3] = "■";	 // 이미지 무늬
+char frame_shape[3] = "■";	 // 화면 테두리 무늬
+typedef struct doll	 // 인형 구조체
 {
-	char name[30]; // 인형 이름
-	int number; // 고유 번호 1, 2, 3 ...
-	int price; // 가격
-	int stock; // 남은수량 (재고)
-	char profile[100]; // 인형에 대한 설명
-
+	char name[30]; // 이름
+	int number;	   // 고유 번호
+	int price;	   // 가격
+	int stock;	   // 재고 수량
+	char profile[100]; // 설명
 }DOLL;
-DOLL doll[4] = { // 인형 구조체 변수 선언 {이름 / 고유번호 / 가격 / 재고수량 / 상세설명}
+DOLL doll[4] = { // {이름 / 고유번호 / 가격 / 재고수량 / 상세설명} 기본값 설정
 		{"푹찍이", 1, 30000, 5, "인형인데 금방이라도 칼을 휘두를것같다.칼은 다행히 모형이다. "},
 		{"물찍이", 2, 20000, 5, "물을 부어주면 진화할것같은 느낌이 드는 인형이다.            "},
 		{"어몽이", 3, 10000, 5, "임포스터일수도 아닐수도 있는 인형. 한눈팔면 안될것같다.     "},
 		{"치냥이", 4, 5000, 5, "눈이 초롱초롱한 고양이 인형이다.                             "},
 };
-
 int doll_image_01[25][25] = {
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 	{0,0,0,0,0,0,0,0,0,0,15,15,15,15,15,0,0,0,0,0,0,0,0,0,0},
@@ -236,9 +236,9 @@ int doll_image_05[25][25] = {
 		{0,0,0,0,0,0,0,0,8,8,0,0,0,0,0,8,8,0,0,0,0,0,0,0,0},
 	};
 
-//////////////////////////////////////////////// 사용자 정의 함수 (시각 효과 관련) ////////////////////////////////////////////////
-
-void displayPattern1(int startX, int startY) {
+														// 사용자 정의 함수 - 시각 효과 //
+// 윤서님 제작
+void displayPattern1(int startX, int startY) { 
 	int dollone[25][25] = {
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,15,15,15,15,15,0,0,0,0,0,0,0,0,0,0},
@@ -306,6 +306,7 @@ void displayPattern1(int startX, int startY) {
 		printf("\n"); // 한 행이 끝난 후 줄바꿈
 	}
 }
+// 윤서님 제작
 void displayPattern2(int startX, int startY) {
 	int dolltwo[25][25] = {
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -386,6 +387,7 @@ void displayPattern2(int startX, int startY) {
 		printf("\n"); // 한 행이 끝난 후 줄바꿈
 	}
 }
+// 윤서님 제작
 void displayPattern3(int startX, int startY) {
 	int dollthree[25][25] = {
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -470,6 +472,7 @@ void displayPattern3(int startX, int startY) {
 		printf("\n"); // 한 행이 끝난 후 줄바꿈
 	}
 }
+// 윤서님 제작
 void displayPattern4(int startX, int startY) {
 	int dollfour[25][25] = {
 		{0,0,0,0,0,0,8,8,0,0,0,0,0,0,0,0,0,8,8,0,0,0,0,0,0},
@@ -537,6 +540,7 @@ void displayPattern4(int startX, int startY) {
 		printf("\n"); // 한 행이 끝난 후 줄바꿈
 	}
 }
+// 윤서님 제작
 void displayPatternall()
 {
 	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);
@@ -649,7 +653,7 @@ void displayPatternall()
 	printf("  ■　　　　　  　│　 　　 　　 　　▶◀ 푹찍이 ▶◀ 　　　 　　 　│ │　 　　 　　　▶◀ 물찍이 ▶◀ 　　　　 　 　│ │　 　　 　　 　▶◀ 어몽이 ▶◀ 　　　　　 　│ │　 　　 　　 　 　▶◀ 치냥이 ▶◀ 　　　　 　  　│ \n");
 	printf("  ■              └━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┘ └━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┘ └━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┘ └━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┘ \n");
 }
-
+// 윤서님 제작
 void Complete_Screen() {
 	int x = 85, y = 13;
 	gotoxy(x, y + 1); printf(" ______  __ __   ____  ____   __  _        __ __   ___   __ __ \n");
@@ -684,7 +688,7 @@ void Complete_Screen() {
 	gotoxy(x, y + 36); printf("                        |__|   \\___/ |____/                                 \n");
 	gotoxy(x, y + 37); printf("                                                             \n");
 }
-
+// 윤서님 제작
 void Intro_Screen()
 {
 	int x = 53, y = 9;
@@ -734,265 +738,7 @@ void Intro_Screen()
 
 	gotoxy(220, 59); printf("Ver 1.0.0");
 }     //◀◀◀◀메인타이틀 화면
-
-void Make_Image(int image[25][25],int x, int y) // 해당 좌표에 이미지 출력 (출력할 이미지 배열 이름, 시작 좌표값 필요)
-{
-	for (int i = 0; i < 25; i=i+1) // y
-	{
-		for (int j = 0; j < 25; j=j+1) // x
-		{
-			gotoxy(x+(j*2), y+i); // 전달한 시작 좌표로 이동
-			textcolor(image[i][j]); // 해당 픽셀값 전달하여 색상변환
-			printf("■"); // 출력
-		}
-	}
-	textcolor(text_color); // 출력 다 끝나고 초기 색상으로 리셋
-}
-void Delete_Image(int x, int y) // 해당위치에 공백을 출력하여 이미지 지움 효과 (25x25)
-{
-	for (int i = 0; i < 25; i = i + 1) // y
-	{
-		gotoxy(x, y + i); // 전달한 시작 좌표로 이동
-		printf("　　　　　　　　　　　　　　　　　　　　　　　　　"); // 출력
-	}
-}
-void Clear(int x, int y) // 해당위치에 공백을 출력하여 이미지 지움 효과 (길게)
-{
-	for (int i = 0; i < 25; i = i + 1) // y
-	{
-		gotoxy(x, y + i); // 전달한 시작 좌표로 이동
-		printf("　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　"); // 출력
-	}
-}
-void Clear_Random(int x, int y) // 랜덤메뉴 내부에서 화면 지우기 (제일 길게 지움)
-{
-	for (int i = 0; i < 25; i = i + 1) // y
-	{
-		gotoxy(x, y + i); // 전달한 시작 좌표로 이동
-		printf("　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　"); // 출력
-	}
-}
-void Text_Effect(char text[]) // 텍스트 재생 애니메이션 효과
-{
-	for (int i=0;text[i]!='\0'; i++)
-	{
-		putchar(text[i]);
-		delay(text_speed);
-	}
-}
-
-void Make_Frame() // 테두리 출력
-{
-	gotoxy(2, 1); printf("■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■\n"); // 116
-	for (int y = 2; y < 61; y++)
-	{
-		gotoxy(2, y); printf("■"); // 왼쪽 벽 출력
-		gotoxy(232, y); printf("■"); // 오른쪽 벽 출력
-	}
-	gotoxy(2, 61); printf("■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■\n"); // 116
-}
-
-
-void Press_Key_Text()
-{
-	gotoxy(100, 55); printf("<  P R E S S  A N Y  K E Y  T O  S T A R T  >");
-}
-void Press_Key_Delete()
-{
-	gotoxy(100, 55); printf("　　　　　　　　　　　　　　　　　　　　　　　　　"); // 공백 25개
-}
-void Intro_Effect() // 인트로 화면
-{
-	for (;;) // 키입력 받을때까지 인트로 무한반복
-	{
-		textcolor(LIGHTWHITE);
-		Make_Frame(); // 테두리 출력
-		
-		textcolor(YELLOW);
-		Intro_Screen();// 간단한 메인 타이틀 인트로 화면 출력
-		
-		textcolor(11);
-		Press_Key_Text();
-		//_getch();
-		//break;
-		delay(speed / 4); // 0.2초 대기
-		Press_Key_Delete();
-		if (_kbhit()) // 키 입력 받으면 탈출
-		{
-			break;
-		}
-		delay(speed / 4);
-		if (_kbhit())
-		{
-			break;
-		}
-		
-	}
-}
-
-//////////////////////////////////////////////// 사용자 정의 함수 (기능 관련) ////////////////////////////////////////////////////
-
-void Main_Screen(int x, int y) // 메인 메뉴 화면
-{
-	int Distance = 4; // 간격
-	textcolor(11);
-	gotoxy(110, 8);				printf("   < 메뉴 >"); textcolor(text_color);
-	gotoxy(x, y);				printf("< 1 >   자 판 기   실 행");
-	gotoxy(x, y+ Distance * 1); printf("");
-	gotoxy(x, y+ Distance * 2); printf("< 2 >   랜 덤 뽑 기");
-	gotoxy(x, y+ Distance * 3); printf("");
-	gotoxy(x, y+ Distance * 4); printf("< 3 >   종 료");
-	gotoxy(x, y+ Distance * 5); printf("");
-	textcolor(YELLOW);
-	gotoxy(100, 56);			printf("         메뉴를 선택하세요");
-	textcolor(text_color);
-	gotoxy(212, 53); printf("     < 제작자 >");
-	gotoxy(212, 55); printf("       백성진");
-	gotoxy(212, 56); printf("       ");
-	gotoxy(212, 57); printf("       구윤서");
-	gotoxy(212, 58); printf("       ");
-}
-
-void Cash_System_Print(int x, int y) // 금액 투입 시스템 1 (출력)
-{
-	int Distance = 1;
-	textcolor(11);
-	gotoxy(x, y);			printf("   < 금액 투입 메뉴 >"); textcolor(text_color);
-	gotoxy(x, y + Distance * 1); printf("");
-	gotoxy(x, y + Distance * 2); printf("< 1 > 50000원 투입");
-	gotoxy(x, y + Distance * 3); printf("< 2 > 10000원 투입");
-	gotoxy(x, y + Distance * 4); printf("< 3 > 5000원 투입");
-	gotoxy(x, y + Distance * 5); printf("< 4 > 1000원 투입");
-	gotoxy(x, y + Distance * 6); printf(""); 
-	gotoxy(x, y + Distance * 7); printf("< 7 > 투입 금액 반환");
-	gotoxy(x, y + Distance * 8); printf("< 8 > 메인 메뉴로 이동");
-	gotoxy(x, y + Distance * 9); printf("< 9 > 다음 단계로 이동");
-	gotoxy(x, y + Distance * 10); printf("");
-	gotoxy(x, y + Distance * 11); printf("현재 투입 총 금액 : ");
-	if (total_cash == 0)textcolor(LIGHTRED);
-	else if (total_cash >= 1000)textcolor(LIGHTGREEN);
-	printf("%d 원", total_cash);
-	gotoxy(x, y + Distance * 12); printf(""); textcolor(text_color);
-	gotoxy(x, y + Distance * 13); printf("번호를 입력하세요 ");
-}
-void Cash_System_Calculate(int cash_select, int x, int y) // 금액 투입 시스템 2 (메뉴 가동 기능)
-{
-	char str[50];
-	gotoxy(x, y);
-	switch (cash_select) // 지폐 선택 [3]
-	{
-	case '1': // 5만원권을 선택한경우
-	{
-		textcolor(YELLOW);
-		strcpy(str,"< 5만원권을 투입하였습니다 >");
-		Text_Effect(str);
-		textcolor(text_color);
-		total_cash = total_cash + 50000;
-		delay(speed);
-		break;
-	}
-	case '2': // 1만원권 
-	{
-		textcolor(LIGHTGREEN);
-		strcpy(str, "< 1만원권을 투입하였습니다 >");
-		Text_Effect(str);
-		textcolor(text_color);
-		total_cash = total_cash + 10000;
-		delay(speed);
-		break;
-	}
-	case '3': // 5천원권
-	{
-		textcolor(ORANGE);
-		strcpy(str, "< 5천원권을 투입하였습니다 >");
-		Text_Effect(str);
-		textcolor(text_color);
-		total_cash = total_cash + 5000;
-		delay(speed);
-		break;
-	}
-	case '4': // 1천원권
-	{
-		textcolor(3);
-		strcpy(str, "< 1천원권을 투입하였습니다 >");
-		Text_Effect(str);
-		textcolor(text_color);
-		total_cash = total_cash + 1000;
-		delay(speed);
-		break;
-	}
-	case '7': // 환불
-	{
-		if (total_cash > 0)
-		{
-			textcolor(YELLOW);
-			strcpy(str, "< 전액 환불 처리 되었습니다. >");
-			Text_Effect(str);
-			gotoxy(x, y + 1);
-			strcpy(str, "환불 금액 : ");
-			Text_Effect(str);
-			printf("%d", total_cash);
-			strcpy(str, "원");
-			Text_Effect(str);
-			textcolor(text_color);
-			total_cash = 0;
-			delay(speed);
-			break;
-		}
-		else
-		{
-			textcolor(LIGHTRED);
-			strcpy(str, "< 환불할 금액이 없습니다. >");
-			Text_Effect(str);
-			textcolor(text_color);
-			total_cash = 0;
-			delay(speed);
-			break;
-		}
-	}
-	case '8': // 뒤로가기
-	{
-		textcolor(YELLOW);
-		strcpy(str, "<<< 이전 메뉴로 이동합니다 >>>");
-		Text_Effect(str);
-		textcolor(text_color);
-		delay(speed);
-		start = -1;
-		break;
-	}
-	case '9': // 투입 완료
-	{
-		if (total_cash >= 1000)
-		{
-			textcolor(LIGHTGREEN);
-			strcpy(str, "<<< 다음 단계로 이동합니다 >>>");
-			Text_Effect(str);
-			textcolor(text_color);
-			start = 1; // 플래그 변수 전환 >> 탈출 후 인형뽑기로 진입
-			delay(speed);
-			break;
-		}
-		else if (total_cash < 1000)
-		{
-			textcolor(LIGHTRED);
-			strcpy(str, "< 금액을 투입해주세요 >");
-			Text_Effect(str);
-			textcolor(text_color);
-			delay(speed);
-			break;
-		}
-		
-	}
-	default:
-	{
-		strcpy(str, "잘못된 입력입니다.");
-		Text_Effect(str);
-		delay(speed);
-		break;
-	}
-	}
-}
-
+// 윤서님 제작
 void Machine_Screen() // 인형 목록 화면
 {
 	int dollone[30][111] = {
@@ -1031,7 +777,7 @@ void Machine_Screen() // 인형 목록 화면
 	{
 		for (int j = 0; j < 111; j = j + 1) // x
 		{
-			gotoxy((j * 2) + 4, i+2); // 해당 배열의 좌표로 이동
+			gotoxy((j * 2) + 4, i + 2); // 해당 배열의 좌표로 이동
 			textcolor(dollone[i][j]); // 해당 픽셀값 전달하여 색상변환
 			puts(doll_shape); // 출력
 		}
@@ -1045,184 +791,189 @@ void Machine_Screen() // 인형 목록 화면
 	gotoxy(2, 50);
 
 }
-/* 개편 후 사용 안함
-void Machine_System_Print(int x, int y) // 인형 자판기 시스템 1 (출력)
+
+
+
+
+void Make_Image(int image[25][25],int x, int y) // 해당 좌표에 인형 이미지 출력
+{
+	for (int i = 0; i < 25; i = i + 1) // y
+	{
+		for (int j = 0; j < 25; j = j + 1) // x
+		{
+			gotoxy(x + (j * 2), y + i);
+			textcolor(image[i][j]); // doll_image[25][25] 배열의 색상값에 따라 색상 변환
+			printf(doll_shape);
+		}
+	}
+	textcolor(text_color); // 디폴트 색상으로 리셋
+}
+
+void Delete_Image(int x, int y) // 해당 좌표의 인형 이미지 삭제
+{
+	for (int i = 0; i < 25; i = i + 1)
+	{
+		for (int j = 0; j < 25; j = j + 1)
+		{
+			gotoxy(x + (j * 2), y + i);
+			printf("  ");
+		}
+	}
+}
+
+void Text_Effect(char text[]) // 텍스트 재생 애니메이션 효과
+{
+	for (int i = 0; text[i] != '\0'; i++)
+	{
+		putchar(text[i]);
+		delay(text_speed);
+	}
+}
+
+void Clear(int x, int y) // 화면 길게 지우기
+{
+	for (int i = 0; i < 25; i = i + 1) // y
+	{
+		gotoxy(x, y + i);
+		for (int j = 0; j < 60; j = j + 1)
+		{
+			printf("　");
+		}
+	}
+}
+
+void Clear_Random(int x, int y) // 랜덤에서 화면 길게 지우기
+{
+	for (int i = 0; i < 25; i = i + 1) // y
+	{
+		gotoxy(x, y + i);
+		for (int j = 0; j < 85; j = j + 1)
+		{
+			printf("　");
+		}
+	}
+}
+
+void Make_Frame() // 테두리 출력
+{
+	int left = 2;
+	int right = 232;
+	int top = 1;
+	int bottom = 61;
+
+	textcolor(frame_color);
+
+	gotoxy(left, top);
+	for (int i = left; i <= right; i = i + 2) { printf(frame_shape); } // 상단 테두리
+
+	gotoxy(left, bottom);
+	for (int i = left; i <= right; i = i + 2) { printf(frame_shape); } // 하단 테두리
+
+	gotoxy(left, top);
+	for (int i = top; i <= bottom; i = i + 1) { gotoxy(left, i); printf(frame_shape); } // 좌측 테두리
+
+	gotoxy(right, top);
+	for (int i = top; i <= bottom; i = i + 1) { gotoxy(right, i); printf(frame_shape); } // 우측 테두리
+}
+
+void Press_Key_Text()
+{
+	gotoxy(100, 55); printf("<  P R E S S  A N Y  K E Y  T O  S T A R T  >");
+}
+
+void Press_Key_Delete()
+{
+	gotoxy(100, 55); for (int i = 0; i < 25; i++) { printf("　"); }
+}
+
+void Intro_Effect() // 인트로 화면
+{
+	Make_Frame();
+
+	textcolor(YELLOW);
+	Intro_Screen();
+
+	textcolor(BLUEGREEN);
+
+	for (;;) // 하단 문구 점멸 하며 키 입력 받기
+	{
+		Press_Key_Text();
+
+		delay(speed / 4);		// 200ms
+		
+		Press_Key_Delete();
+
+		if (_kbhit()){ break; }
+
+		delay(speed / 4);
+
+		if (_kbhit()){ break; }
+		
+	}
+}
+
+void Main_Screen(int x, int y) // 메인 메뉴
+{
+	int Distance = 4;
+	int Creater_x = 212;
+	int Creater_y = 53;
+	int Creater_Distance = 1;
+
+	textcolor(BLUEGREEN);
+	gotoxy(110, 8);				printf("   < 메뉴 >");
+
+	textcolor(text_color);
+	gotoxy(x, y);				printf("< 1 >   자 판 기   실 행");
+	gotoxy(x, y + Distance * 1); printf("");
+	gotoxy(x, y + Distance * 2); printf("< 2 >   랜 덤 뽑 기");
+	gotoxy(x, y + Distance * 3); printf("");
+	gotoxy(x, y + Distance * 4); printf("< 3 >   종 료");
+	gotoxy(x, y + Distance * 5); printf("");
+
+	textcolor(YELLOW);
+	gotoxy(100, 56);			printf("         메뉴를 선택하세요");
+
+	textcolor(text_color);
+	gotoxy(Creater_x, Creater_y);	  printf("     < 제작자 >");
+	gotoxy(Creater_x, Creater_y + 1); printf("       백성진");
+	gotoxy(Creater_x, Creater_y + 2); printf("");
+	gotoxy(Creater_x, Creater_y + 3); printf("       구윤서");
+	gotoxy(Creater_x, Creater_y + 4); printf("");
+}
+
+void Cash_System_Print(int x, int y) // 금액 투입 시스템 화면
 {
 	int Distance = 1;
-	int doll_select = 0;
 
-	gotoxy(x, y); printf("");
-	gotoxy(x, y + Distance);     printf("< 1번 >\t%s\t가격 : %d 원\t남은수량 : %d 개", doll[0].name, doll[0].price, doll[0].stock);
-	gotoxy(x, y + Distance * 2); printf("< 2번 >\t%s\t가격 : %d 원\t남은수량 : %d 개", doll[1].name, doll[1].price, doll[1].stock);
-	gotoxy(x, y + Distance * 3); printf("< 3번 >\t%s\t가격 : %d 원\t남은수량 : %d 개", doll[2].name, doll[2].price, doll[2].stock);
-	gotoxy(x, y + Distance * 4); printf("< 4번 >\t%s\t가격 : %d 원\t남은수량 : %d 개", doll[3].name, doll[3].price, doll[3].stock);
-	gotoxy(x, y + Distance * 5); printf("");
-	gotoxy(x, y + Distance * 6); printf("< 8번 입력 >\t금액 투입 메뉴로 이동");
-	gotoxy(x, y + Distance * 7); printf("");
-	gotoxy(x, y + Distance * 8); printf("\t< 현재 투입 금액 : %d 원 >", total_cash);
-	gotoxy(x, y + Distance * 9); printf("");
-	gotoxy(x, y + Distance * 10); printf("숫자를 입력하세요 ");
-}
+	textcolor(BLUEGREEN);
+	gotoxy(x, y);				 printf("   < 금액 투입 메뉴 >"); textcolor(text_color);
+	gotoxy(x, y + Distance * 1); printf("");
+	gotoxy(x, y + Distance * 2); printf("< 1 > 50000원 투입");
+	gotoxy(x, y + Distance * 3); printf("< 2 > 10000원 투입");
+	gotoxy(x, y + Distance * 4); printf("< 3 > 5000원 투입");
+	gotoxy(x, y + Distance * 5); printf("< 4 > 1000원 투입");
+	gotoxy(x, y + Distance * 6); printf("");
+	gotoxy(x, y + Distance * 7); printf("< 7 > 투입 금액 반환");
+	gotoxy(x, y + Distance * 8); printf("< 8 > 메인 메뉴로 이동");
+	gotoxy(x, y + Distance * 9); printf("< 9 > 다음 단계로 이동");
+	gotoxy(x, y + Distance * 10); printf("");
+	gotoxy(x, y + Distance * 11); printf("현재 투입 총 금액 : ");
 
-void Machine_System_Activate(int input, int x, int y) // 인형 자판기 시스템 2 (결제)
-{
-	int n = 0;
-	char str[50];
-	gotoxy(x, y);
-	switch (input) // input = doll_select
-	{
-	case '1':
-	{
-		n = 1;
-		if (total_cash < doll[n - 1].price) // 금액이 부족한경우
-		{
-			strcpy(str, "금액이 부족합니다.");
-			Text_Effect(str);
-			delay(speed);
-			break;
-		}
-		else if (total_cash >= doll[n - 1].price) // 금액이 충분한 경우인데,
-		{
-			if (doll[n - 1].stock >= 1) // 재고가 있는경우 > 구매 성공
-			{
-				strcpy(str, "구매에 성공하였습니다.");
-				Text_Effect(str);
-				total_cash = total_cash - doll[n - 1].price;
-				doll[n - 1].stock = doll[n - 1].stock - 1;
-				delay(speed);
-				break;
-			}
-			else if (doll[n - 1].stock <= 0) // 재고가 없는경우
-			{
-				strcpy(str, "남은 수량이 없습니다.");
-				Text_Effect(str);
-				delay(speed);
-				break;
-			}
-		}
-	}
-	case '2':
-	{
-		n = 2;
-		if (total_cash < doll[n - 1].price) // 금액이 부족한경우
-		{
-			strcpy(str, "금액이 부족합니다.");
-			Text_Effect(str);
-			delay(speed);
-			break;
-		}
-		else if (total_cash >= doll[n - 1].price) // 금액이 충분한 경우인데,
-		{
-			if (doll[n - 1].stock >= 1) // 재고가 있는경우 > 구매 성공
-			{
-				strcpy(str, "구매에 성공하였습니다.");
-				Text_Effect(str);
-				total_cash = total_cash - doll[n - 1].price;
-				doll[n - 1].stock = doll[n - 1].stock - 1;
-				delay(speed);
-				break;
-			}
-			else if (doll[n - 1].stock <= 0) // 재고가 없는경우
-			{
-				strcpy(str, "남은 수량이 없습니다.");
-				Text_Effect(str);
-				delay(speed);
-				break;
-			}
-		}
-	}
-	case '3':
-	{
-		n = 3;
-		if (total_cash < doll[n - 1].price) // 금액이 부족한경우
-		{
-			strcpy(str, "금액이 부족합니다.");
-			Text_Effect(str);
-			delay(speed);
-			break;
-		}
-		else if (total_cash >= doll[n - 1].price) // 금액이 충분한 경우인데,
-		{
-			if (doll[n - 1].stock >= 1) // 재고가 있는경우 > 구매 성공
-			{
-				strcpy(str, "구매에 성공하였습니다.");
-				Text_Effect(str);
-				total_cash = total_cash - doll[n - 1].price;
-				doll[n - 1].stock = doll[n - 1].stock - 1;
-				delay(speed);
-				break;
-			}
-			else if (doll[n - 1].stock <= 0) // 재고가 없는경우
-			{
-				strcpy(str, "남은 수량이 없습니다.");
-				Text_Effect(str);
-				delay(speed);
-				break;
-			}
-		}
-	}
-	case '4':
-	{
-		n = 4;
-		if (total_cash < doll[n - 1].price) // 금액이 부족한경우
-		{
-			strcpy(str, "금액이 부족합니다.");
-			Text_Effect(str);
-			delay(speed);
-			break;
-		}
-		else if (total_cash >= doll[n - 1].price) // 금액이 충분한 경우인데,
-		{
-			if (doll[n - 1].stock >= 1) // 재고가 있는경우 > 구매 성공
-			{
-				strcpy(str, "구매에 성공하였습니다.");
-				Text_Effect(str);
-				total_cash = total_cash - doll[n - 1].price;
-				doll[n - 1].stock = doll[n - 1].stock - 1;
-				delay(speed);
-				break;
-			}
-			else if (doll[n - 1].stock <= 0) // 재고가 없는경우
-			{
-				strcpy(str, "남은 수량이 없습니다.");
-				Text_Effect(str);
-				delay(speed);
-				break;
-			}
-		}
-	}
-	case '8': // 뒤로가기
-	{
-		start = 0; // 플래그 변수 초기화
-		strcpy(str, "<<< 이전 메뉴로 이동합니다 >>>");
-		Text_Effect(str);
-		delay(speed);
-		break;
-	}
-	default:
-	{
-		strcpy(str, "잘못 입력하였습니다");
-		Text_Effect(str);
-		delay(speed);
-		break;
-	}
-	} 
-}
-*/
-/////////////////////////////////////////////////////////////////////////
-void Randomize_Doll_Stock(int n) // 인형 수량 랜덤화
-{
-	for (int i = 0; i < 4; i++) // i 는 인형 종류 갯수
-	{
-		doll[i].stock = random(n-1) + 1; // 재고수량 랜덤 배정
-	}
+	if (total_cash == 0) { textcolor(LIGHTRED); }
+	else if (total_cash >= 1000) { textcolor(LIGHTGREEN); }
+
+	printf("%d 원", total_cash);
+
+	gotoxy(x, y + Distance * 12); printf(""); textcolor(text_color);
+	gotoxy(x, y + Distance * 13); printf("번호를 입력하세요 ");
 }
 
 void Random_Game_Screen_Print(int x, int y) // 랜덤 뽑기 확률표 화면 출력
 {
 	int Distance = 1;
-	textcolor(11);
-	gotoxy(x, y);				printf("     < 랜덤 확률 표 >"); textcolor(text_color);
+
+	textcolor(BLUEGREEN);
+	gotoxy(x, y);				 printf("     < 랜덤 확률 표 >"); textcolor(text_color);
 	gotoxy(x, y + Distance * 1); printf("");
 	gotoxy(x, y + Distance * 2); printf("1등 인형 당첨 확률 : 1%%");
 	gotoxy(x, y + Distance * 3); printf("2등 인형 당첨 확률 : 4%%");
@@ -1233,22 +984,157 @@ void Random_Game_Screen_Print(int x, int y) // 랜덤 뽑기 확률표 화면 출력
 	gotoxy(x, y + Distance * 7); printf("< 1회 뽑기 비용 : %d원 >", random_cost);
 	textcolor(text_color);
 }
-void Random_Game_Message(int x, int y) //랜덤 뽑기 메뉴
+
+void Random_Game_Message(int x, int y) // 랜덤 뽑기 메뉴
 {
 	int Distance = 1;
-	textcolor(11);
-	gotoxy(x, y);				printf("     << 랜덤 뽑기 >>"); textcolor(text_color);
+	textcolor(BLUEGREEN);
+	gotoxy(x, y);				 printf("     << 랜덤 뽑기 >>"); textcolor(text_color);
 	gotoxy(x, y + Distance * 1); printf("");
 	gotoxy(x, y + Distance * 2); printf("< 1 > 랜덤 뽑기 진행 ");
 	gotoxy(x, y + Distance * 3); printf("< 8 > 이전 메뉴로 이동");
 	gotoxy(x, y + Distance * 4); printf("");
-	gotoxy(x, y + Distance * 5); printf("현재 투입된 금액 : "); 
-	if (total_cash == 0)textcolor(LIGHTRED);
-	else if (total_cash >= 1000)textcolor(LIGHTGREEN);
+	gotoxy(x, y + Distance * 5); printf("현재 투입된 금액 : ");
+
+	if (total_cash == 0) { textcolor(LIGHTRED); }
+	else if (total_cash >= 1000) { textcolor(LIGHTGREEN); }
+
 	printf("%d 원", total_cash);
+
 	textcolor(text_color);
 	gotoxy(x, y + Distance * 6); printf("");
 	gotoxy(x, y + Distance * 7); printf("  목록을 선택하세요 ");
+}
+
+void Exit_Screen() // 종료시 화면
+{
+	int left = 4;
+	int right = 170;
+	int top = 4;
+	int bottom = 30;
+
+	int center_x = 87;
+	int center_y = 17;
+
+	int text_x = 107;
+	int text_y = 44;
+
+	cls;
+	Make_Image(doll_image_01, left, top);
+	Make_Image(doll_image_02, right, top);
+	Make_Image(doll_image_04, left, bottom);
+	Make_Image(doll_image_03, right, bottom);
+	Make_Image(doll_image_05, center_x, center_y);
+
+	gotoxy(text_x, text_y); textcolor(BLUEGREEN); printf("다음에 또봐요~~~\n");
+}
+
+
+												// 사용자 정의 함수 - 주요 기능 //
+
+void Cash_System_Calculate(int cash_select, int x, int y) // 금액 투입 시스템 기능
+{
+	char str[50];
+	int color = 0;
+	int refund = 0;
+
+	gotoxy(x, y);
+	switch (cash_select) // 지폐 선택
+	{
+	case '1': // 5만원권
+	{
+		color = YELLOW;
+		strcpy(str,"< 5만원권을 투입하였습니다 >");
+		total_cash = total_cash + 50000;
+		break;
+	}
+	case '2': // 1만원권 
+	{
+		color = LIGHTGREEN;
+		strcpy(str, "< 1만원권을 투입하였습니다 >");
+		total_cash = total_cash + 10000;
+		break;
+	}
+	case '3': // 5천원권
+	{
+		color = ORANGE;
+		strcpy(str, "< 5천원권을 투입하였습니다 >");
+		total_cash = total_cash + 5000;
+		break;
+	}
+	case '4': // 1천원권
+	{
+		color = SKYBLUE;
+		strcpy(str, "< 1천원권을 투입하였습니다 >");
+		total_cash = total_cash + 1000;
+		break;
+	}
+	case '7': // 환불
+	{
+		if (total_cash > 0)
+		{
+			color = YELLOW;
+			strcpy(str, "< 전액 환불 처리 되었습니다. >");
+			refund = 1;
+		}
+		else
+		{
+			color = LIGHTRED;
+			strcpy(str, "< 환불할 금액이 없습니다. >");
+		}
+		break;
+	}
+	case '8': // 뒤로 가기
+	{
+		color = YELLOW;
+		strcpy(str, "<<< 이전 메뉴로 이동합니다 >>>");
+		start = -1; // 이전 메뉴로 이동
+		break;
+	}
+	case '9': // 투입 완료
+	{
+		if (total_cash >= min_cost)
+		{
+			color = LIGHTGREEN;
+			strcpy(str, "<<< 다음 단계로 이동합니다 >>>");
+			start = 1;	// 다음 단계로 진입
+		}
+		else
+		{
+			color = LIGHTRED;
+			strcpy(str, "< 금액을 투입해주세요 >");
+		}
+		break;
+	}
+	default:
+	{
+		strcpy(str, "잘못된 입력입니다.");
+		break;
+	}
+	}
+
+	textcolor(color);
+	Text_Effect(str);
+
+	if (refund == 1)
+	{
+		gotoxy(x, y + 1);
+		strcpy(str, "환불 금액 : ");
+		Text_Effect(str);
+		printf("%d원", total_cash);
+		total_cash = 0;
+	}
+
+	delay(speed);
+	textcolor(text_color);
+}
+
+void Randomize_Doll_Stock(int n) // 인형별 재고 수량 랜덤화
+{
+	for (int i = 0; i < 4; i++)
+	{
+		doll[i].stock = random(n-1) + 1;
+	}
 }
 
 void Random_Game_Start(int game_menu_select,int x, int y) // 랜덤 게임 진행 함수
@@ -1257,10 +1143,11 @@ void Random_Game_Start(int game_menu_select,int x, int y) // 랜덤 게임 진행 함수
 	int start_y = 36;
 	char str[50];
 	int dice = random(100); // dice를 랜덤화 (0~99) 값 중에 1개 랜덤 배정
+
 	gotoxy(x, y);
 	switch (game_menu_select)
 	{
-	case '1': // 진행을 선택했는데,
+	case '1': // 진행을 선택했는데
 	{
 		if (total_cash < random_cost) // 돈이 부족한경우
 		{
@@ -1280,16 +1167,16 @@ void Random_Game_Start(int game_menu_select,int x, int y) // 랜덤 게임 진행 함수
 			delay(speed);
 			total_cash = total_cash - random_cost;
 			gotoxy(x, y + 2);
-			if (dice < 1) // (0 나올시 = 1%)
+			if (dice < 1) // 1%
 			{
-				textcolor(11);
+				textcolor(BLUEGREEN);
 				strcpy(str, "★★★ 1등 당첨 !!! ★★★");
 				Text_Effect(str);
 				textcolor(text_color);
 				Make_Image(doll_image_01, start_x, start_y);
 				delay(speed*2);
 			}
-			else if (dice >= 1 && dice < 5) // 1,2,3,4 나올시 = 4%
+			else if (dice >= 1 && dice < 5) // 4%
 			{
 				textcolor(LIGHTGREEN);
 				strcpy(str, "☆☆☆ 2등 당첨 !!! ☆☆☆");
@@ -1298,7 +1185,7 @@ void Random_Game_Start(int game_menu_select,int x, int y) // 랜덤 게임 진행 함수
 				Make_Image(doll_image_02, start_x, start_y);
 				delay(speed*2);
 			}
-			else if (dice >= 5 && dice < 20) // 5,6,7,8,9, 10,11,12,13,14,15,16,17,18,19 나올시 15%
+			else if (dice >= 5 && dice < 20) // 15%
 			{
 				textcolor(YELLOW);
 				strcpy(str, "♡♡♡ 3등 당첨 !!! ♡♡♡");
@@ -1327,7 +1214,7 @@ void Random_Game_Start(int game_menu_select,int x, int y) // 랜덤 게임 진행 함수
 			}
 			else
 			{
-				printf("알 수 없는 오류");
+				printf("오류 : dice 랜덤값");
 				delay(speed);
 			}
 			Delete_Image(start_x, start_y);
@@ -1351,6 +1238,7 @@ void Random_Game_Start(int game_menu_select,int x, int y) // 랜덤 게임 진행 함수
 	}
 	}
 }
+
 /*
 void Setting_Screen(int x, int y) // 환경 설정 메뉴
 {
@@ -1377,25 +1265,13 @@ void Information_Screen(int x, int y) // 도움말, 제작자 메뉴
 	printf("구윤서 : ");
 	gotoxy(x, y + 30);
 	printf("< 기타 >");
-	printf("제작 기간 : 2024년 10월 31일 - 2024년 11월 일");
+	printf("제작 기간 : 2024년 10월 31일 부터 2주간");
 	printf("");
 }
 */
-void Exit_Screen(int x, int y) // 종료시 캐릭터 전부 보여주며 종료하는 함수
-{
-	cls;
-	Make_Image(doll_image_01, 4, 4);
-	Make_Image(doll_image_02, 170, 4);
-	Make_Image(doll_image_04, 4, 30);
-	Make_Image(doll_image_03, 170, 30);
-	Make_Image(doll_image_05, 87, 17);
-	gotoxy(x, y);
-	textcolor(11);
-	printf("다음에 또봐요~~~\n");
-}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void OMG() // 구윤서님 제작 코드
+// 윤서님 제작
+void OMG()
 {
 
 	char ask; //픽 최종확인 스페이스바를 입력받을 캐릭터형 변수
@@ -1992,110 +1868,133 @@ void OMG() // 구윤서님 제작 코드
 	cls;
 }
 
-//////////////////////////////////////////////////// 메인 ////////////////////////////////////////////////////////
+
+												//// 메인 ////
 
 void main() 
 {
+	int main_screen_start_x = 104; // 메뉴 선택화면 출력 좌표
+	int main_screen_start_y = 25;
+	int cash_system_start_x = 80; // 금액 투입 문구 출력 좌표
+	int cash_system_start_y = 37;
+	int random_screen_start_x = 140; // 랜덤 확률표 문구 출력 좌표
+	int random_screen_start_y = 37;
+	int screen_bottom_start_x = 16; // 하단 문구 제거 시작 좌표
+	int screen_bottom_start_y = 36;
+
 	int menu_select = 0;	// 메인 메뉴 선택 변수
 	int cash_select = 1;	// 투입 금액 변수
-	char str[50];
+	char str[50];			// 텍스트 애니메이션을 텍스트를 담을 변수
+
 	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);		// 창크기 전체화면
 	setcolor(LIGHTWHITE, BLACK);	// 기본 글자 색상 (뒤에값은 글자뒤 배경색)
-	setcursortype(NOCURSOR);		// 커서 타입
-	randomize();					// 랜덤함수사용
-	Randomize_Doll_Stock(5);		// 1번 메뉴 재고 랜덤 1~5개 배정
+	setcursortype(NOCURSOR);		// 커서 타입 없음
+	randomize();					// 랜덤화 사용
+	Randomize_Doll_Stock(5);		// 선택뽑기의 재고 배정 (랜덤 1~5개)
 
 	Intro_Effect();					//인트로 화면 출력
 	textcolor(LIGHTWHITE);
 
-	for (;;)	// 프로그램 시작	// 메인 무한 반복
+	for (;;)	// 메인 메뉴 무한 반복
 	{
-		cls;
-		start = 0;		// 플래그 변수
-		Make_Frame();
-		Main_Screen(104, 25); // 메뉴 선택 화면 좌표값에 출력
+		start = 0;		// 플래그 변수 초기화
+
+		cls;			// 화면 지움
+		Make_Frame();	// 테두리
+		Main_Screen(main_screen_start_x, main_screen_start_y); // 메인 메뉴 선택 화면
+
 		menu_select = _getch();
 		
-		switch (menu_select) // 메인 메뉴 숫자 입력
+		switch (menu_select)
 		{
-		case '1': // 1번메뉴 인형뽑기 진입
+		case '1': // 선택 뽑기 메뉴 진입
 		{
-			start = 0; // 플래그 변수 초기화 //
-			for (; start != -1;) // 인형뽑기의 금액투입 반복 구문 (플래그 변수 start가 -1이 아닐경우 무한 실행)
+			start = 0; // 플래그 변수 초기화
+
+			for ( ; start != -1 ; ) //  금액투입 반복 ( 이전 단계 이동이 아닐경우 )
 			{
-				cls;
-				int input_02 = 0;
-				int input_03 = 0;
+				int cash_select = 0;
 				int doll_select = 0;
-				for (; start == 0;) // 플래그 변수가 0이면 금액 입력 받기 반복
+
+				cls;
+
+				for ( ; start == 0 ; ) // 플래그 변수가 0이면 금액 입력 받기 반복
 				{
-					Clear(16,36);
-					Machine_Screen(); // 인형 목록
-					Make_Frame();
-					Cash_System_Print(80, 37); // 금액 투입 메뉴 좌표에 출력
-					input_02 = _getch();
-					Cash_System_Calculate(input_02, 80, 53); // 계산 및 좌표에 출력
+					Clear(screen_bottom_start_x, screen_bottom_start_y);		// 화면 하단부 초기화
+					Machine_Screen();	 // 인형 목록
+					Make_Frame();		 // 테두리
+					Cash_System_Print(cash_system_start_x, cash_system_start_y);	// 금액 투입 문구
+
+					cash_select = _getch();
+					Cash_System_Calculate(cash_select, cash_system_start_x, cash_system_start_y + 16); // 금액 투입 계산 및 좌표에 출력
 				}
-				if (start == 1) // 플래그 변수가 1이면 인형 선택 화면으로 진입 하여 반복
+
+				if (start == 1) // 다음 단계 이동인 경우
 				{
 					cls;
 					Machine_Screen();
 					Make_Frame();
-					OMG(); // 캐릭터 선택창부터 결과화면까지 함수
+					OMG(); // 캐릭터 선택창부터 결과화면까지 함수 (윤서님 제작 코드)
 				}
-				if (start == -1) // 플래그 변수가 -1이 될경우 탈출
-				{
-					break;
-				}
-			}// for (; start != -1;)
-			break;
-		} // case 1 인형 뽑기 메뉴 진입
 
-		case '2': // 2번 메뉴 랜덤 뽑기 메뉴 진입
+				if (start == -1) { break; } // 이전 단계 이동
+
+			}// for (start != -1)
+
+			break;
+
+		} // case 1
+
+
+
+		case '2': // 랜덤 뽑기 메뉴 진입
 		{
-			start = 0; // 플래그 변수 초기화 //
-			for (;start == 0;) // 플래그 변수 0일경우 무한 반복
-			{	// 금액 투입 반복
+			start = 0; // 플래그 변수 초기화
+
+			for ( ; start == 0 ; )
+			{	
 				cls;
 				int input = 0;
-				Machine_Screen(); // 인형 목록
-				Make_Frame();
-				Clear(16,36); // 해당위치에서 일정 수만큼의 화면만 지움
-				Random_Game_Screen_Print(140, 37); // 해당 좌표에 확률 표 출력
-				Cash_System_Print(80, 37); // 금액 투입 메뉴 좌표에 출력
-				input = _getch();
-				Cash_System_Calculate(input, 80, 52); // 계산 및 좌표에 출력
 
-				for (; start == 1;) // 랜덤 게임 진행 반복
+				Machine_Screen();	// 인형 목록
+				Make_Frame();		// 테두리
+				Clear(screen_bottom_start_x, screen_bottom_start_y);					// 하단부 영역 초기화
+				Random_Game_Screen_Print(random_screen_start_x, random_screen_start_y); // 확률표
+				Cash_System_Print(cash_system_start_x, cash_system_start_y);			// 금액 투입 메뉴
+
+				input = _getch();
+				Cash_System_Calculate(input, cash_system_start_x, cash_system_start_y + 15); // 금액 투입 계산 및 좌표에 출력
+
+				for ( ; start == 1 ; )	// 랜덤 게임 진행 반복
 				{
-					int input_02 = 0;
-					int random_menu_select = 0;
-					Clear_Random(16, 36); // 랜덤메뉴 하단부 영역 지우기
+					int random_select = 0;
+
+					Clear_Random(screen_bottom_start_x, screen_bottom_start_y);				// 하단부 영역 초기화 (넓게)
 					Machine_Screen();
 					Make_Frame();
-					Random_Game_Screen_Print(140,37); // 확률표
-					Random_Game_Message(80, 37); // 랜덤 뽑기 메뉴
-					input_02 = _getch();
-					Random_Game_Start(input_02, 80, 47); // 랜덤 뽑기 진행
-					
+					Random_Game_Screen_Print(random_screen_start_x, random_screen_start_y); // 확률표
+					Random_Game_Message(cash_system_start_x, cash_system_start_y);			// 랜덤 뽑기 메뉴
+
+					random_select = _getch();
+					Random_Game_Start(random_select, cash_system_start_x, cash_system_start_y + 10); // 랜덤 뽑기 진행
 				}
-				if (start == -1)
-				{
-					break;
-				}
-			} // for (start == 0);
+
+				if (start == -1) { break; } // 이전 메뉴 이동
+
+			} // for (start == 0)
 			break;
-		} // case 2 :
+		} // case 2
+
 
 		case '3' : // 종료
 		{
 			cls;
-			Exit_Screen(87+20, 17+25+2);
+			Exit_Screen();
 			delay(2000);
 			cls;
 			exit(0);
 		}
-		default: // 잘못입력된경우 (메인메뉴)
+		default:
 		{
 			rewind(stdin);
 			break;
